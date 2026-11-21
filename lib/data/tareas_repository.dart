@@ -48,6 +48,30 @@ class TareasRepository {
     await _db.into(_db.tareas).insert(TareasCompanion.insert(titulo: limpio));
   }
 
+  Future<void> editarTitulo(int id, String titulo) async {
+    final limpio = validarTitulo(titulo);
+    await (_db.update(_db.tareas)..where((t) => t.id.equals(id)))
+        .write(TareasCompanion(titulo: Value(limpio)));
+  }
+
+  Future<void> marcarCompletada(int id, bool completada) async {
+    await (_db.update(_db.tareas)..where((t) => t.id.equals(id)))
+        .write(TareasCompanion(completada: Value(completada)));
+  }
+
+  Future<void> eliminar(int id) async {
+    await (_db.delete(_db.tareas)..where((t) => t.id.equals(id))).go();
+  }
+
+  /// Vuelve a insertar una tarea eliminada (para el "Deshacer" de la UI).
+  Future<void> restaurar(Tarea tarea) async {
+    await _db.into(_db.tareas).insertOnConflictUpdate(TareasCompanion.insert(
+          id: Value(tarea.id),
+          titulo: tarea.titulo,
+          completada: Value(tarea.completada),
+        ));
+  }
+
   Tarea _aModelo(TareaFila fila) => Tarea(
         id: fila.id,
         titulo: fila.titulo,
