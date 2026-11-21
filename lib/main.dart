@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
+
+import 'data/app_database.dart';
+import 'data/tareas_repository.dart';
 import 'screens/tareas_page.dart';
 
 void main() {
-  runApp(const GestorTareasApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    GestorTareasApp(repositorio: TareasRepository(AppDatabase.persistente())),
+  );
 }
 
-/// Punto de entrada de la aplicación.
-/// La configuración del almacenamiento se agregará como parte de la tarea.
+/// Punto de entrada de la aplicación. Recibe el repositorio para poder
+/// inyectar una base en memoria durante las pruebas.
 class GestorTareasApp extends StatelessWidget {
-  const GestorTareasApp({super.key});
+  const GestorTareasApp({super.key, required this.repositorio});
+
+  final TareasRepository repositorio;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +27,7 @@ class GestorTareasApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
-      home: const TareasPage(),
+      home: TareasPage(repositorio: repositorio),
     );
   }
 }
