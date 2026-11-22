@@ -53,18 +53,30 @@ o al borrar los datos del sitio se pierden.
 - `tareas_repository_test.dart`: validación de títulos (vacío, solo espacios, más de 120) y CRUD sobre SQLite en memoria.
 - `persistencia_test.dart`: guarda, marca, edita y borra en un archivo real, cierra la base, la reabre y comprueba los datos (equivale a P1-P4).
 - `widget_test.dart`: la pantalla abre sin errores y un título vacío no se registra.
+- `editar_dialogo_test.dart`: flujo de edición desde la interfaz (abrir el diálogo, cambiar el título y guardar).
 
-## Entornos
+## Dónde se guarda la base
+
+- **Android, iOS, Windows, Linux, macOS:** archivo `gestor_tareas.sqlite` en la carpeta de datos de la aplicación (`getApplicationSupportDirectory`). En Windows queda en `%APPDATA%\com.example\gestor_tareas_local\`. Se evita la carpeta "Documentos" (el valor por defecto de `drift_flutter`) porque en Windows suele estar sincronizada con OneDrive.
+- **Web:** dentro del navegador (OPFS o IndexedDB), ligada al origen y al perfil.
+
+## Entornos verificados
 
 Según la aclaración de la práctica, basta con que la app funcione en tres entornos: web, móvil y escritorio. El código es el mismo para todos.
 
-| Entorno | Estado |
-|---------|--------|
-| Escritorio (Windows) | Compila (`flutter build windows`) y el ejecutable arranca; pruebas P1-P6 manuales: ver abajo |
-| Web | Compila (`flutter build web`); pruebas manuales: ver abajo |
-| Móvil (Android) | Previsto con el mismo código, **no probado** |
+| Entorno | Cómo se probó | P1 | P2 | P3 | P4 | P5 | P6 |
+|---------|---------------|----|----|----|----|----|----|
+| Web | `flutter run -d web-server` (puerto 8081), Chromium automatizado con Playwright | OK | OK | OK | OK | OK | OK |
+| Escritorio (Windows 11) | Compilación `--debug`, ventana cerrada y reabierta a mano | OK | OK | OK | OK | OK | n/a |
+| Móvil (Android) | Emulador Pixel 10 Pro XL, APK `--debug`, `force-stop` y reapertura | OK | OK | OK | OK | OK | n/a |
 
-Resultados de P1-P6 manuales: _pendiente de registrar tras ejecutar la app._
+Qué se hizo en cada prueba: P1 agregar 3 tareas y reiniciar; P2 marcar una como completada; P3 cambiar un título; P4 eliminar una tarea; P5 intentar agregar un título vacío. En cada plataforma, tras P1-P4 se cerró la app por completo y se reabrió: las dos tareas restantes, el estado y el título editado se conservaron, y la tarea eliminada no reapareció. P6 aplica solo a web: se recargó la página y luego se cerró la pestaña y se abrió otra en el mismo origen y perfil, con los datos intactos.
+
+**Limitaciones:**
+- No se probó en iOS, macOS ni Linux (requieren sus propios sistemas); el código es el mismo.
+- Android solo en emulador y en modo debug, no en un teléfono físico.
+- Web solo en Chromium. No se probó Firefox ni Safari, ni el modo privado.
+- Con `flutter run` el servidor no envía los encabezados COOP/COEP, así que Drift usa `sharedIndexedDb` (más lento) en lugar de OPFS. Los datos persisten igual; para OPFS, ver [la documentación de Drift](https://drift.simonbinder.eu/platforms/web/).
 
 ## Problema real documentado
 

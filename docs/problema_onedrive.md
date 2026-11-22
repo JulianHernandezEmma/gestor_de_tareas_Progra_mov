@@ -65,3 +65,18 @@ Trabajar siempre en una ruta local sin sincronizar y subir el código con
 `git push`. Si hay que quedarse en OneDrive, pausar la sincronización durante
 la compilación o marcar la carpeta como "Mantener siempre en este dispositivo"
 reduce el problema, pero no lo elimina.
+
+## Segundo efecto: la base de datos también cayó en OneDrive
+
+Al probar la app en Windows, el archivo SQLite quedó en
+`C:\Users\julia\OneDrive\Documentos\gestor_tareas.sqlite`. Es el valor por
+defecto de `drift_flutter` (`getApplicationDocumentsDirectory`), y en este
+equipo "Documentos" está sincronizada con OneDrive. Una base SQLite abierta
+mantiene archivos auxiliares (`-wal`, `-shm`) que cambian todo el tiempo, y un
+cliente de sincronización puede bloquearlos o subir copias a medias.
+
+No llegó a fallar durante las pruebas, así que no es un fallo reproducido, sino
+un riesgo que se evitó: `AppDatabase.persistente()` ahora usa
+`DriftNativeOptions(databaseDirectory: getApplicationSupportDirectory)`. En
+Windows el archivo queda en `%APPDATA%\com.example\gestor_tareas_local\`, fuera
+de OneDrive, y se verificó en Windows y en Android que los datos persisten.
