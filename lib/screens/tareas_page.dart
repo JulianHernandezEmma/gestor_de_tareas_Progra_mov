@@ -53,31 +53,10 @@ class _TareasPageState extends State<TareasPage> {
       );
 
   Future<void> _editarTarea(Tarea tarea) async {
-    final controller = TextEditingController(text: tarea.titulo);
     final nuevo = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar título'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: TareasRepository.largoMaximo,
-          decoration: const InputDecoration(border: OutlineInputBorder()),
-          onSubmitted: (v) => Navigator.pop(context, v),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
+      builder: (context) => EditarTituloDialog(tituloActual: tarea.titulo),
     );
-    controller.dispose();
     if (nuevo == null) return;
     await _ejecutar(() => widget.repositorio.editarTitulo(tarea.id, nuevo));
   }
@@ -229,6 +208,54 @@ class _TareasPageState extends State<TareasPage> {
           onEliminar: () => _eliminarTarea(tarea),
         );
       },
+    );
+  }
+}
+
+/// Diálogo para editar el título. Es un StatefulWidget para que el
+/// controlador se libere cuando el diálogo realmente desaparece: si se
+/// liberara en cuanto `showDialog` regresa, el TextField seguiría usándolo
+/// durante la animación de salida y Flutter lanzaría un error.
+class EditarTituloDialog extends StatefulWidget {
+  const EditarTituloDialog({super.key, required this.tituloActual});
+
+  final String tituloActual;
+
+  @override
+  State<EditarTituloDialog> createState() => _EditarTituloDialogState();
+}
+
+class _EditarTituloDialogState extends State<EditarTituloDialog> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.tituloActual);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Editar título'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        maxLength: TareasRepository.largoMaximo,
+        decoration: const InputDecoration(border: OutlineInputBorder()),
+        onSubmitted: (v) => Navigator.pop(context, v),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: const Text('Guardar'),
+        ),
+      ],
     );
   }
 }
