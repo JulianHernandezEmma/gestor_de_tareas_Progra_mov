@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
@@ -19,9 +20,17 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   /// Abre la base persistente (archivo en nativo, OPFS/IndexedDB en web).
+  ///
+  /// En nativo el archivo va en la carpeta de datos de la aplicación y no en
+  /// "Documentos" (el valor por defecto de drift_flutter): en Windows,
+  /// Documentos suele estar sincronizada con OneDrive, que puede bloquear el
+  /// archivo SQLite y sus -wal/-shm mientras la app lo usa.
   factory AppDatabase.persistente() => AppDatabase(
         driftDatabase(
           name: 'gestor_tareas',
+          native: DriftNativeOptions(
+            databaseDirectory: getApplicationSupportDirectory,
+          ),
           web: DriftWebOptions(
             sqlite3Wasm: Uri.parse('sqlite3.wasm'),
             driftWorker: Uri.parse('drift_worker.dart.js'),
